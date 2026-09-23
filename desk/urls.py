@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("tickets/", views.ticket_list, name="ticket_list"),
+    path("tickets/export.csv", views.ticket_export, name="ticket_export"),
     path("tickets/new/", views.ticket_create, name="ticket_create"),
     path("tickets/<int:pk>/", views.ticket_detail, name="ticket_detail"),
     path("tickets/<int:pk>/edit/", views.ticket_edit, name="ticket_edit"),
@@ -16,4 +17,3 @@ urlpatterns = [
     path("api/v1/tickets/", views.api_ticket_list, name="api_ticket_list"),
     path("api/v1/tickets/<int:pk>/", views.api_ticket_detail, name="api_ticket_detail"),
 ]
-

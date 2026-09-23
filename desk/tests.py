@@ -1,8 +1,10 @@
 from decimal import Decimal
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from .models import Customer, Ticket, TicketEvent, WorkItem
 
@@ -82,3 +84,21 @@ class DeskTests(TestCase):
         self.assertContains(response, "Заявка создана")
         self.assertContains(response, "Системное событие")
         self.assertContains(response, "900")
+
+    def test_overdue_filter_and_csv_export(self):
+        self.ticket.title = '=SUM(1,1)'
+        self.ticket.due_date = timezone.localdate() - timedelta(days=1)
+        self.ticket.save()
+        Ticket.objects.create(customer=self.customer, title='Будущий ремонт', issue='Тест', due_date=timezone.localdate() + timedelta(days=1))
+        filtered = self.client.get(reverse('ticket_list'), {'overdue': '1'})
+        self.assertContains(filtered, '=SUM(1,1)')
+        self.assertNotContains(filtered, 'Будущий ремонт')
+        exported = self.client.get(reverse('ticket_export'), {'overdue': '1'})
+        self.assertEqual(exported.status_code, 200)
+        self.assertIn('text/csv', exported['Content-Type'])
+        self.assertIn("'=SUM(1,1)", exported.content.decode('utf-8-sig'))
+        self.assertNotIn('Будущий ремонт', exported.content.decode('utf-8-sig'))
+
+    def test_anonymous_user_cannot_export(self):
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse('ticket_export')).status_code, 302)

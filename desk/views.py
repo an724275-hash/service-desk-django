@@ -1,9 +1,12 @@
+import csv
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
 
@@ -16,6 +19,7 @@ def filtered_tickets(params):
     query = params.get("q", "").strip()[:120]
     status = params.get("status", "")
     priority = params.get("priority", "")
+    overdue = params.get("overdue", "")
     if query:
         search = Q(title__icontains=query) | Q(issue__icontains=query) | Q(customer__name__icontains=query) | Q(customer__phone__icontains=query)
         if query.isdecimal():
@@ -25,6 +29,8 @@ def filtered_tickets(params):
         tickets = tickets.filter(status=status)
     if priority in Ticket.Priority.values:
         tickets = tickets.filter(priority=priority)
+    if overdue == "1":
+        tickets = tickets.filter(due_date__lt=timezone.localdate()).exclude(status__in=[Ticket.Status.CLOSED, Ticket.Status.CANCELLED])
     return tickets
 
 
@@ -36,6 +42,7 @@ def dashboard(request):
         "new_count": open_tickets.filter(status=Ticket.Status.NEW).count(),
         "ready_count": open_tickets.filter(status=Ticket.Status.READY).count(),
         "urgent_count": open_tickets.filter(priority=Ticket.Priority.HIGH).count(),
+        "overdue_count": open_tickets.filter(due_date__lt=timezone.localdate()).count(),
         "recent_tickets": Ticket.objects.select_related("customer", "assigned_to")[:8],
         "recent_events": TicketEvent.objects.select_related("ticket", "actor")[:6],
     }
@@ -50,9 +57,33 @@ def ticket_list(request):
         "query": request.GET.get("q", "")[:120],
         "selected_status": request.GET.get("status", ""),
         "selected_priority": request.GET.get("priority", ""),
+        "selected_overdue": request.GET.get("overdue", ""),
         "statuses": Ticket.Status.choices,
         "priorities": Ticket.Priority.choices,
     })
+
+
+@login_required
+@require_GET
+def ticket_export(request):
+    """Export only the same filtered tickets the operator can see in the list."""
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="tickets.csv"'
+    response.write("\ufeff")
+    writer = csv.writer(response)
+    writer.writerow(["Номер", "Устройство", "Клиент", "Статус", "Приоритет", "Срок", "Оценка"])
+
+    def safe(value):
+        text = str(value or "")
+        return "'" + text if text.lstrip().startswith(("=", "+", "-", "@", "\t", "\r")) else text
+
+    for ticket in filtered_tickets(request.GET).iterator():
+        writer.writerow([
+            ticket.pk, safe(ticket.title), safe(ticket.customer.name),
+            ticket.get_status_display(), ticket.get_priority_display(),
+            ticket.due_date.isoformat() if ticket.due_date else "", ticket.estimate,
+        ])
+    return response
 
 
 @login_required
@@ -175,4 +206,3 @@ def api_ticket_list(request):
 def api_ticket_detail(request, pk):
     ticket = get_object_or_404(Ticket.objects.select_related("customer", "assigned_to"), pk=pk)
     return JsonResponse(ticket_data(ticket))
-
