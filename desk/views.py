@@ -1,10 +1,11 @@
 import csv
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
@@ -37,12 +38,25 @@ def filtered_tickets(params):
 @login_required
 def dashboard(request):
     open_tickets = Ticket.objects.exclude(status__in=[Ticket.Status.CLOSED, Ticket.Status.CANCELLED])
+    today = timezone.localdate()
+    status_counts = {row["status"]: row["total"] for row in Ticket.objects.values("status").annotate(total=Count("id"))}
+    status_breakdown = [
+        {"label": label, "count": status_counts.get(value, 0)}
+        for value, label in Ticket.Status.choices
+    ]
+    total_tickets = sum(row["count"] for row in status_breakdown)
+    for row in status_breakdown:
+        row["width"] = round(row["count"] * 100 / total_tickets) if total_tickets else 0
     context = {
         "open_count": open_tickets.count(),
         "new_count": open_tickets.filter(status=Ticket.Status.NEW).count(),
         "ready_count": open_tickets.filter(status=Ticket.Status.READY).count(),
         "urgent_count": open_tickets.filter(priority=Ticket.Priority.HIGH).count(),
-        "overdue_count": open_tickets.filter(due_date__lt=timezone.localdate()).count(),
+        "overdue_count": open_tickets.filter(due_date__lt=today).count(),
+        "due_soon_count": open_tickets.filter(due_date__gte=today, due_date__lte=today + timedelta(days=7)).count(),
+        "closed_month_count": Ticket.objects.filter(status=Ticket.Status.CLOSED, updated_at__gte=timezone.now() - timedelta(days=30)).count(),
+        "status_breakdown": status_breakdown,
+        "total_tickets": total_tickets,
         "recent_tickets": Ticket.objects.select_related("customer", "assigned_to")[:8],
         "recent_events": TicketEvent.objects.select_related("ticket", "actor")[:6],
     }

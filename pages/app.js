@@ -4,8 +4,18 @@ const tickets = [
   {id:103,title:'Монитор LG',issue:'Изображение пропадает через несколько минут',customer:'Мария С.',status:'В работе',priority:'Срочная',estimate:'5 800 ₽',next:'Завершить ремонт платы'},
   {id:104,title:'Планшет iPad',issue:'Не работает кнопка питания',customer:'Олег В.',status:'Готово',priority:'Обычная',estimate:'2 400 ₽',next:'Связаться с клиентом'},
   {id:105,title:'Игровая приставка',issue:'Перегревается при запуске игры',customer:'Дмитрий Н.',status:'В работе',priority:'Важная',estimate:'4 100 ₽',next:'Проверить систему охлаждения'},
+  {id:106,title:'Ноутбук ASUS',issue:'Шумит вентилятор и отключается под нагрузкой',customer:'Елена Р.',status:'Диагностика',priority:'Срочная',estimate:'4 600 ₽',next:'Проверить охлаждение'},
+  {id:107,title:'Фотоаппарат Canon',issue:'Не открывается крышка батарейного отсека',customer:'Виктор П.',status:'Новая',priority:'Обычная',estimate:'900 ₽',next:'Принять на диагностику'},
+  {id:108,title:'Моноблок HP',issue:'Медленно загружается система',customer:'Наталья Д.',status:'Готово',priority:'Важная',estimate:'3 800 ₽',next:'Согласовать выдачу'},
 ];
 const list=document.querySelector('#tickets'), detail=document.querySelector('#detail');
+function renderOverview(){
+  const metrics=[['Всего заявок',tickets.length],['В работе',tickets.filter(t=>t.status==='В работе').length],['Срочных',tickets.filter(t=>t.priority==='Срочная').length],['Готово к выдаче',tickets.filter(t=>t.status==='Готово').length]];
+  const metricBox=document.querySelector('#metrics');metricBox.replaceChildren();
+  for(const [label,value] of metrics){const item=document.createElement('div');item.className='demo-metric';const caption=document.createElement('span');caption.textContent=label;const number=document.createElement('strong');number.textContent=value;item.append(caption,number);metricBox.append(item);}
+  const breakdown=document.querySelector('#breakdown');breakdown.replaceChildren();
+  for(const status of ['Новая','Диагностика','В работе','Готово']){const count=tickets.filter(t=>t.status===status).length;const row=document.createElement('div');row.className='breakdown-row';const label=document.createElement('span');label.textContent=status;const track=document.createElement('span');track.className='breakdown-track';const bar=document.createElement('span');bar.style.width=`${count/tickets.length*100}%`;track.append(bar);const value=document.createElement('strong');value.textContent=count;row.append(label,track,value);breakdown.append(row);}
+}
 function render(){
   const q=document.querySelector('#search').value.trim().toLocaleLowerCase('ru');
   const status=document.querySelector('#status').value, priority=document.querySelector('#priority').value;
@@ -22,5 +32,4 @@ function open(t){const content=document.querySelector('#detail-content');content
 document.querySelector('#filters').addEventListener('input',render);
 document.querySelector('#close').onclick=()=>{detail.hidden=true;};
 document.addEventListener('keydown',event=>{if(event.key==='Escape')detail.hidden=true;});
-render();
-
+renderOverview();render();

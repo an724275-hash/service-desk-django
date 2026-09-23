@@ -940,3 +940,14 @@ h3 {
     scroll-behavior: auto;
   }
 }
+.analytics-surface { margin-bottom: 22px; }
+.analytics-total { font-size: 13px; color: #5e675f; }
+.status-breakdown { display: grid; gap: 12px; margin-top: 20px; }
+.breakdown-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(90px, 3fr) 28px; gap: 15px; align-items: center; font-size: 13px; }
+.breakdown-row strong { text-align: right; }
+.breakdown-track { height: 8px; background: #e6e9df; }
+.breakdown-track span { display: block; height: 100%; background: #55745e; }
+.analytics-facts { display: flex; flex-wrap: wrap; gap: 28px; margin-top: 25px; padding-top: 20px; border-top: 1px solid #dde2d8; }
+.analytics-facts p { display: flex; gap: 9px; align-items: baseline; margin: 0; color: #59645a; font-size: 13px; }
+.analytics-facts strong { font-size: 22px; color: #26382d; }
+@media (max-width: 600px) { .breakdown-row { grid-template-columns: 100px minmax(0, 1fr) 24px; gap: 8px; font-size: 11px; } .analytics-facts { display: block; } .analytics-facts p + p { margin-top: 10px; } }

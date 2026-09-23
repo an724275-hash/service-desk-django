@@ -102,3 +102,14 @@ class DeskTests(TestCase):
     def test_anonymous_user_cannot_export(self):
         self.client.logout()
         self.assertEqual(self.client.get(reverse('ticket_export')).status_code, 302)
+
+    def test_dashboard_analytics_use_database_values(self):
+        response = self.client.get(reverse('dashboard'))
+        self.assertEqual(response.context['total_tickets'], 1)
+        self.assertEqual(sum(row['count'] for row in response.context['status_breakdown']), 1)
+        self.assertEqual(response.context['closed_month_count'], 0)
+        self.ticket.status = Ticket.Status.CLOSED
+        self.ticket.save()
+        response = self.client.get(reverse('dashboard'))
+        self.assertEqual(response.context['open_count'], 0)
+        self.assertEqual(response.context['closed_month_count'], 1)
