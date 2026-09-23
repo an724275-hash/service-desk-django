@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Клиенты{% endblock %}
+{% block content %}
+<header class="page-heading"><div><p class="eyebrow">Контакты</p><h1>Клиенты</h1><p class="subtitle">Контактные данные и заявки в одной системе.</p></div><a class="button primary" href="{% url 'customer_create' %}">Добавить клиента</a></header>
+<form class="filter-bar compact-bar" method="get"><label><span>Поиск</span><input name="q" value="{{ query }}" placeholder="Имя, телефон или email"></label><button class="button secondary" type="submit">Найти</button></form>
+<section class="surface list-surface"><div class="section-heading"><h2>Найдено: {{ page.paginator.count }}</h2></div>{% if page.object_list %}<div class="customer-rows">{% for customer in page %}<div class="customer-row"><span class="customer-initial">{{ customer.name|slice:':1'|upper }}</span><span><strong>{{ customer.name }}</strong><small>{{ customer.phone }}{% if customer.email %} · {{ customer.email }}{% endif %}</small></span></div>{% endfor %}</div>{% else %}<p class="empty-state">Клиентов не найдено. Уточните поиск или добавьте нового.</p>{% endif %}</section>
+{% if page.paginator.num_pages > 1 %}<nav class="pagination" aria-label="Страницы клиентов">{% if page.has_previous %}<a href="?q={{ query|urlencode }}&page={{ page.previous_page_number }}">Назад</a>{% endif %}<span>{{ page.number }} из {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a href="?q={{ query|urlencode }}&page={{ page.next_page_number }}">Далее</a>{% endif %}</nav>{% endif %}
+{% endblock %}
+

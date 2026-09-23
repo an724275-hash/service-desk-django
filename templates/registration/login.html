@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Вход{% endblock %}
+{% block public_content %}
+<div class="login-layout">
+  <div class="login-intro"><span class="brand-mark large">С</span><p class="eyebrow">Демо-проект на Django</p><h1>Заявки на ремонт<br>без потерянных деталей.</h1><p>Рабочий стол сервисного центра: клиенты, исполнители, этапы ремонта и сметы.</p><p class="demo-note">Все данные в демонстрации вымышлены.</p></div>
+  <div class="login-panel"><p class="eyebrow">Вход для сотрудника</p><h2>С возвращением</h2>{% if form.errors %}<p class="form-error" role="alert">Неверный логин или пароль.</p>{% endif %}<form method="post">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}"><label for="id_username">Логин</label><input id="id_username" name="username" autocomplete="username" required autofocus><label for="id_password">Пароль</label><input id="id_password" name="password" type="password" autocomplete="current-password" required><button class="button primary full" type="submit">Войти в панель</button></form><div class="login-hint"><strong>Локальное демо</strong><span>Логин: demo<br>Пароль: demo12345</span></div></div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}Новый клиент{% endblock %}
+{% block content %}
+<header class="page-heading"><div><a class="back-link" href="{% url 'customer_list' %}">← К клиентам</a><p class="eyebrow">Контакты</p><h1>Новый клиент</h1></div></header><form class="surface form-surface" method="post">{% csrf_token %}<div class="form-grid">{% for field in form %}<div class="form-field {% if field.name == 'notes' %}wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required">*</span>{% endif %}</label>{{ field }}{% if field.errors %}<small class="field-error">{{ field.errors|striptags }}</small>{% endif %}</div>{% endfor %}</div><div class="form-actions"><button class="button primary" type="submit">Сохранить клиента</button><a class="button quiet" href="{% url 'customer_list' %}">Отмена</a></div></form>
+{% endblock %}
+

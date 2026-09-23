@@ -1,0 +1,41 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f2ec">
+  <title>{% block title %}Смена{% endblock %} | Сервисный стол</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <a class="skip-link" href="#content">К содержимому</a>
+  {% if user.is_authenticated %}
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Навигация">
+      <a class="brand" href="{% url 'dashboard' %}" aria-label="Смена, обзор"><span class="brand-mark">С</span><span>Смена<small>Сервисный стол</small></span></a>
+      <nav class="main-nav" aria-label="Основные разделы">
+        <a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}aria-current="page"{% endif %}>Обзор</a>
+        <a href="{% url 'ticket_list' %}" {% if request.resolver_match.url_name == 'ticket_list' or request.resolver_match.url_name == 'ticket_detail' or request.resolver_match.url_name == 'ticket_edit' or request.resolver_match.url_name == 'ticket_create' %}aria-current="page"{% endif %}>Заявки</a>
+        <a href="{% url 'customer_list' %}" {% if request.resolver_match.url_name == 'customer_list' or request.resolver_match.url_name == 'customer_create' %}aria-current="page"{% endif %}>Клиенты</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <p class="demo-note">Демонстрационный проект. Все имена, телефоны и заявки вымышлены.</p>
+        <div class="account-row"><span class="account-avatar">{{ user.username|slice:':1'|upper }}</span><span>{{ user.get_full_name|default:user.username }}</span></div>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-button" type="submit">Выйти</button></form>
+      </div>
+    </aside>
+    <main class="main-area" id="content">
+      <div class="mobile-brand"><a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark">С</span><span>Смена</span></a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-button" type="submit">Выйти</button></form></div>
+      {% if messages %}<div class="messages" role="status">{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+      {% block content %}{% endblock %}
+      <footer class="page-footer">Демо для портфолио. Реальных данных клиентов здесь нет.</footer>
+    </main>
+    <nav class="mobile-nav" aria-label="Разделы"><a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}aria-current="page"{% endif %}>Обзор</a><a href="{% url 'ticket_list' %}" {% if 'ticket' in request.resolver_match.url_name %}aria-current="page"{% endif %}>Заявки</a><a href="{% url 'customer_list' %}" {% if 'customer' in request.resolver_match.url_name %}aria-current="page"{% endif %}>Клиенты</a></nav>
+  </div>
+  {% else %}
+  <main id="content">{% block public_content %}{% endblock %}</main>
+  {% endif %}
+</body>
+</html>
+
